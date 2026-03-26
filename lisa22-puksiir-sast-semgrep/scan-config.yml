@@ -1,0 +1,155 @@
+# Semgrep SAST Scan Configuration
+# Puksiir Towing Company App — thesis research (chapter 4.2)
+# Tool: Semgrep OSS 1.151.0
+# Ruleset: https://semgrep.dev/p/owasp-top-ten + https://semgrep.dev/p/csharp
+#
+# Run command (backend):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --config p/csharp \
+#     --json --output sast/reports/owasp-top-ten-backend.json \
+#     --exclude "bin" \
+#     --exclude "obj" \
+#     --exclude "Migrations" \
+#     --exclude "App.Tests" \
+#     --exclude "TestResults" \
+#     --exclude "Base.*" \
+#     --exclude "Helpers" \
+#     backend/WebApp/ backend/App.BLL/ backend/App.DAL.EF/ \
+#     backend/App.Domain/ backend/App.API/ backend/App.DTO/ \
+#     backend/App.BLL.DTO/ backend/App.DAL.DTO/ \
+#     backend/App.Contracts.DAL/ backend/App.BLL.Contracts/
+#
+# Run command (SARIF report):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --config p/csharp \
+#     --sarif --output sast/reports/owasp-top-ten-backend.sarif \
+#     <same targets and excludes as above>
+#
+# Run command (frontend):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --config p/javascript \
+#     --json --output sast/reports/owasp-top-ten-frontend.json \
+#     --exclude "node_modules" \
+#     --exclude "dist" \
+#     --exclude "k6" \
+#     --exclude "*.spec.ts" \
+#     frontend/src/
+
+scan:
+  tool: semgrep
+  version: "1.151.0"
+  engine: OSS
+
+  rulesets:
+    - id: p/owasp-top-ten
+      url: https://semgrep.dev/p/owasp-top-ten
+      description: >
+        Official Semgrep OWASP Top 10 ruleset — detects security issues
+        mapped to OWASP Top 10 2021 categories using static analysis.
+    - id: p/csharp
+      url: https://semgrep.dev/p/csharp
+      description: >
+        C#-specific rules for common security issues in .NET applications.
+
+  target:
+    application: Puksiir Towing Company
+    stack: "C# / .NET 10 + Vue 3 + PostgreSQL 16"
+    scans:
+      - name: backend
+        language: "C# (.NET 10 / ASP.NET Core)"
+        paths:
+          - backend/WebApp/
+          - backend/App.BLL/
+          - backend/App.DAL.EF/
+          - backend/App.Domain/
+          - backend/App.API/
+          - backend/App.DTO/
+          - backend/App.BLL.DTO/
+          - backend/App.DAL.DTO/
+          - backend/App.Contracts.DAL/
+          - backend/App.BLL.Contracts/
+      - name: frontend
+        language: "TypeScript / Vue 3"
+        paths:
+          - frontend/src/
+
+  exclusions:
+    - bin/
+    - obj/
+    - Migrations/          # auto-generated EF Core migrations
+    - App.Tests/           # test code does not reach production
+    - TestResults/
+    - Base.*/              # base/framework library — not app-specific logic
+    - Helpers/             # shared helper library
+    - node_modules/
+    - dist/
+    - k6/                  # load testing scripts
+    - "*.spec.ts"
+
+  output:
+    - format: json
+      file: sast/reports/owasp-top-ten-backend.json
+    - format: sarif
+      file: sast/reports/owasp-top-ten-backend.sarif
+    - format: json
+      file: sast/reports/owasp-top-ten-frontend.json
+
+  rules_triggered:
+    - id: javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection
+      url: https://semgrep.dev/r/javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection
+      severity: ERROR
+      cwe: CWE-89
+      owasp: A03:2021
+      findings: 2
+      files: [routes/login.ts, routes/search.ts]
+
+    - id: javascript.lang.security.audit.code-string-concat.code-string-concat
+      url: https://semgrep.dev/r/javascript.lang.security.audit.code-string-concat.code-string-concat
+      severity: ERROR
+      cwe: CWE-95
+      owasp: A03:2021
+      findings: 1
+      files: [routes/userProfile.ts]
+
+    - id: javascript.express.security.audit.express-check-directory-listing.express-check-directory-listing
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-check-directory-listing.express-check-directory-listing
+      severity: WARNING
+      cwe: CWE-548
+      owasp: A05:2021
+      findings: 4
+      files: [server.ts]
+
+    - id: javascript.express.security.audit.express-open-redirect.express-open-redirect
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-open-redirect.express-open-redirect
+      severity: WARNING
+      cwe: CWE-601
+      owasp: A01:2021
+      findings: 1
+      files: [routes/redirect.ts]
+
+    - id: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-res-sendfile.express-res-sendfile
+      severity: WARNING
+      cwe: CWE-73
+      owasp: A04:2021
+      findings: 4
+      files: [routes/fileServer.ts, routes/keyServer.ts, routes/logfileServer.ts, routes/quarantineServer.ts]
+
+    - id: javascript.express.security.injection.raw-html-format.raw-html-format
+      url: https://semgrep.dev/r/javascript.express.security.injection.raw-html-format.raw-html-format
+      severity: WARNING
+      cwe: CWE-79
+      owasp: A03:2021
+      findings: 1
+      files: [routes/chatbot.ts]
+
+    - id: javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret
+      url: https://semgrep.dev/r/javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret
+      severity: WARNING
+      cwe: CWE-798
+      owasp: A07:2021
+      findings: 1
+      files: [lib/insecurity.ts]

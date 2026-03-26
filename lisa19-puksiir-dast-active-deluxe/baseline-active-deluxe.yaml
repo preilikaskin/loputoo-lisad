@@ -1,0 +1,84 @@
+env:
+  contexts:
+    - name: active-puksiirijuht
+      urls:
+        - http://localhost:5032
+      includePaths:
+        - http://localhost:5032.*
+      excludePaths:
+        - ^http://localhost:5032/swagger/.*$
+        - ^https?://(?!localhost:5032).*$
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://localhost:5174/
+          loginRequestUrl: http://localhost:5032/api/v1/identity/Account/Login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '"userId"\s*:\s*"'
+          loggedOutRegex: 'User/Password problem'
+      sessionManagement:
+        method: cookie
+      users:
+        - name: puksiirijuht-user
+          credentials:
+            username: puksiirijuht@puksiir.ee
+            password: PuksDev123!
+  parameters:
+    failOnError: false
+    progressToStdout: true
+
+jobs:
+  - type: openapi
+    parameters:
+      apiFile: /Users/kaisaliiv/Projects/puksiir2026-security-tests/swagger.json
+      targetUrl: http://localhost:5032
+
+  - type: spider
+    parameters:
+      context: active-puksiirijuht
+      user: puksiirijuht-user
+      url: http://localhost:5032/api/v1
+      maxDuration: 5
+
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      maxAlertsPerRule: 20
+      scanOnlyInScope: true
+
+  - type: activeScan-config
+    parameters:
+      defaultPolicy: Default Policy
+      maxRuleDurationInMins: 2
+      maxScanDurationInMins: 20
+
+  - type: activeScan
+    parameters:
+      context: active-puksiirijuht
+      user: puksiirijuht-user
+      url: http://localhost:5032/api/v1
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+
+  - type: outputSummary
+    parameters:
+      format: Long
+      summaryFile: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports/active-puksiirijuht-summary.json
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: active-puksiirijuht-report.html
+      reportTitle: Puksiir ZAP Active Scan (Puksiirijuht - A01/Privilege Escalation)
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: active-puksiirijuht-report.json
+      reportTitle: Puksiir ZAP Active Scan (Puksiirijuht - A01/Privilege Escalation) JSON

@@ -1,0 +1,78 @@
+language: en-US
+
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: true
+    drafts: false
+
+cache:
+  enabled: false
+
+path_instructions:
+  - path: "backend/WebApp/ApiControllers/**"
+    instructions: "Prioritize OWASP A01, A05, A07 — check [Authorize] presence, input validation, parameter binding, output encoding, and IDOR via user-controlled IDs."
+  - path: "backend/WebApp/Program.cs"
+    instructions: "Prioritize OWASP A02, A07, A09 — validate middleware ordering, security headers (HSTS, CORS), authentication/authorization config, error handling pipeline, logging setup."
+  - path: "backend/WebApp/appsettings*.json"
+    instructions: "Prioritize OWASP A02, A04, A07 — check for hardcoded secrets, connection strings with passwords, JWT key exposure, development-only settings."
+  - path: "backend/App.BLL/**"
+    instructions: "Prioritize OWASP A01, A06, A08 — validate business logic authorization checks, workflow state transitions, mass assignment protection via DTOs."
+  - path: "backend/App.DAL.EF/**"
+    instructions: "Prioritize OWASP A01, A05, A08 — check for raw SQL (FromSqlRaw), proper parameterization, EF Core query safety, data seeding with secrets."
+  - path: "backend/App.Domain/**"
+    instructions: "Prioritize OWASP A04, A06 — check domain model for sensitive data exposure, cleartext storage fields, missing encryption markers."
+  - path: "backend/App.API/**"
+    instructions: "Prioritize OWASP A01, A05, A07 — check public API contracts, DTO validation attributes, authorization policies."
+  - path: "backend/App.DTO/**"
+    instructions: "Prioritize OWASP A08 — verify DTOs don't expose internal fields, mass assignment boundaries are enforced."
+  - path: "backend/Base.*/**"
+    instructions: "Framework/library layer. Prioritize OWASP A05, A10 — check generic repository patterns for injection risks and exception handling."
+  - path: "frontend/src/**"
+    instructions: "Prioritize OWASP A01, A05, A07 — inspect v-html usage, token/cookie handling, client-side authorization checks, XSS in Vue templates, API call security."
+
+tools:
+  semgrep:
+    enabled: true
+  gitleaks:
+    enabled: true
+  trufflehog:
+    enabled: true
+  osv_scanner:
+    enabled: true
+  eslint:
+    enabled: true
+  biome:
+    enabled: true
+  opengrep:
+    enabled: true
+
+review_instructions: |
+  Security-only review mode (skip style and non-security refactors unless they directly impact security).
+  Use OWASP Top 10 (2025) taxonomy (A01-A10) for every finding.
+  Use the most specific CWE possible.
+  Follow this method inside the review: detect candidate pattern -> validate in changed-code context -> provide semantic risk judgment.
+  For challenge/codefix branches, mark intentionally vulnerable training patterns as Info candidate unless there is clear production runtime reachability.
+  Require concrete evidence in each finding: file path, exact line(s), source/sink or control point, and exploitability rationale.
+  Add explicit confidence (High/Medium/Low) and verdict label (TP/FP/Info candidate) for downstream verification.
+  If uncertain, mark as Info candidate and request manual verification instead of asserting TP.
+  Deduplicate repeated issues across files and keep one primary finding with references.
+  Keep findings PR-scoped (diff + changed-file context) and avoid assumptions about files not visible in the PR.
+  Output Contract (strict, for parsing):
+  - Start every finding comment with: [SECURITY-FINDING]
+  - Use exactly these key-value lines (one per line):
+    OWASP: A0X - <name>
+    CWE: CWE-<id>
+    Severity: Critical|High|Medium|Low|Info
+    Confidence: High|Medium|Low
+    Verdict: TP-candidate|FP-candidate|Info-candidate
+    File: <repo-relative-path>
+    Line: <line-or-range>
+    Source: <input/source point or N/A>
+    Sink: <sink/control point or N/A>
+    Evidence: <short technical evidence>
+    Exploitability: <why exploitable or why uncertain>
+    Recommendation: <short actionable fix>
+  - After the key-value lines, add optional free-text details under: Notes:
+  - If CWE is unknown, use CWE: CWE-0 and explain in Notes:
+  - If line is uncertain, use the best known line and explain in Notes:

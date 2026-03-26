@@ -1,0 +1,88 @@
+env:
+  contexts:
+    - name: api-local
+      urls:
+        - http://localhost:5032
+      includePaths:
+        - ^http://localhost:5032/api/v1/.*$
+      excludePaths:
+        - ^http://localhost:5032/swagger/.*$
+        - ^https?://(?!localhost:5032).*$
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://localhost:5174/
+          loginRequestUrl: http://localhost:5032/api/v1/identity/Account/Login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '"userId"\s*:\s*"'
+          loggedOutRegex: 'User/Password problem'
+      sessionManagement:
+        method: cookie
+      users:
+        - name: api-admin
+          credentials:
+            username: admin@puksiir.ee
+            password: Admin123!Dev
+        - name: api-ceo
+          credentials:
+            username: ceo@puksiir.ee
+            password: CeoDev123!
+  parameters:
+    failOnError: false
+    progressToStdout: true
+
+jobs:
+  - type: openapi
+    parameters:
+      apiFile: /Users/kaisaliiv/Projects/puksiir2026-security-tests/swagger.json
+      targetUrl: http://localhost:5032
+
+  - type: spider
+    parameters:
+      context: api-local
+      user: api-admin
+      url: http://localhost:5032/api/v1
+      maxDuration: 3
+
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      maxAlertsPerRule: 20
+      scanOnlyInScope: true
+
+  - type: activeScan-config
+    parameters:
+      defaultPolicy: API-Minimal
+      maxRuleDurationInMins: 3
+      maxScanDurationInMins: 20
+
+  - type: activeScan
+    parameters:
+      context: api-local
+      user: api-admin
+      url: http://localhost:5032/api/v1
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+
+  - type: outputSummary
+    parameters:
+      format: Long
+      summaryFile: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports/api-summary.json
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: api-report.html
+      reportTitle: Puksiir ZAP API Scan
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: api-report.json
+      reportTitle: Puksiir ZAP API Scan JSON

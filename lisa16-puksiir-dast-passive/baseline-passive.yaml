@@ -1,0 +1,67 @@
+env:
+  contexts:
+    - name: passive
+      urls:
+        - http://localhost:5032
+      includePaths:
+        - http://localhost:5032.*
+      excludePaths:
+        - ^http://localhost:5032/swagger/.*$
+        - ^https?://(?!localhost:5032).*$
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://localhost:5174/
+          loginRequestUrl: http://localhost:5032/api/v1/identity/Account/Login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '"userId"\s*:\s*"'
+          loggedOutRegex: 'User/Password problem'
+      sessionManagement:
+        method: cookie
+      users:
+        - name: admin-user
+          credentials:
+            username: admin@puksiir.ee
+            password: Admin123!Dev
+  parameters:
+    failOnError: true
+    progressToStdout: true
+
+jobs:
+  - type: spider
+    parameters:
+      context: passive
+      user: admin-user
+      url: http://localhost:5032
+      maxDuration: 3
+
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      maxAlertsPerRule: 20
+      scanOnlyInScope: true
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+
+  - type: outputSummary
+    parameters:
+      format: Long
+      summaryFile: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports/passive-summary.json
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: passive-report.html
+      reportTitle: Puksiir ZAP Passive Scan
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /Users/kaisaliiv/Desktop/Lõputöö/testing/towing-company/dast/reports
+      reportFile: passive-report.json
+      reportTitle: Puksiir ZAP Passive Scan JSON

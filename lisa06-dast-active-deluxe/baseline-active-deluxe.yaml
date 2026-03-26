@@ -1,0 +1,87 @@
+env:
+  contexts:
+    - name: active-deluxe
+      urls:
+        - http://localhost:3000
+      includePaths:
+        - http://localhost:3000.*
+      excludePaths:
+        - ^http://localhost:3000/ftp.*$
+        - ^http://localhost:3000/ftp/quarantine.*$
+        - ^http://localhost:3000/ftp/incident-support\.kdbx.*$
+        - ^http://localhost:3000/encryptionkeys.*$
+        - ^https?://cdnjs\.cloudflare\.com.*$
+        - ^https?://firefox-settings-attachments\.cdn\.mozilla\.net/.*$
+        - ^https?://(?!localhost:3000).*$
+        - ^http://localhost:3000/socket\.io/.*$
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://localhost:3000/#/login
+          loginRequestUrl: http://localhost:3000/rest/user/login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '"authentication"\s*:\s*\{\s*"token"'
+          loggedOutRegex: 'Invalid email or password'
+      sessionManagement:
+        method: headers
+        parameters:
+          Authorization: 'Bearer {%json:authentication.token%}'
+      users:
+        - name: deluxe-user
+          credentials:
+            username: ciso@juice-sh.op
+            password: 'mDLx?94T~1CfVfZMzw@sJ9f?s3L6lbMqE70FfI8^54jbNikY5fymx7c!YbJb'
+  parameters:
+    failOnError: true
+    progressToStdout: true
+
+jobs:
+  - type: spider
+    parameters:
+      context: active-deluxe
+      user: deluxe-user
+      url: http://localhost:3000
+      maxDuration: 5
+
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      maxAlertsPerRule: 20
+      scanOnlyInScope: true
+
+  - type: activeScan-config
+    parameters:
+      defaultPolicy: Default Policy
+      maxRuleDurationInMins: 2
+      maxScanDurationInMins: 20
+
+  - type: activeScan
+    parameters:
+      context: active-deluxe
+      user: deluxe-user
+      url: http://localhost:3000
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+
+  - type: outputSummary
+    parameters:
+      format: Long
+      summaryFile: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports/active-deluxe-summary.json
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports
+      reportFile: active-deluxe-report.html
+      reportTitle: Juice Shop ZAP Active Scan (Deluxe Role - A01/Privilege Escalation)
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports
+      reportFile: active-deluxe-report.json
+      reportTitle: Juice Shop ZAP Active Scan (Deluxe Role - A01/Privilege Escalation) JSON

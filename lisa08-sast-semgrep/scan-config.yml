@@ -1,0 +1,157 @@
+# Semgrep SAST Scan Configuration
+# OWASP Juice Shop v19.1.1 — thesis research
+# Tool: Semgrep OSS 1.151.0
+# Date: 2026-02-28
+# Ruleset: https://semgrep.dev/p/owasp-top-ten
+#
+# Run command (backend):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --json --output .semgrep/reports/owasp-top-ten.json \
+#     --exclude "data/static/codefixes" \
+#     --exclude "node_modules" \
+#     --exclude "build" \
+#     --exclude "rsn" \
+#     --exclude "test" \
+#     --exclude "frontend" \
+#     routes/ lib/ models/ data/datacreator.ts data/datacache.ts \
+#     data/staticData.ts data/types.ts data/mongodb.ts app.ts server.ts
+#
+# Run command (SARIF report):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --sarif --output .semgrep/reports/owasp-top-ten-backend.sarif \
+#     <same targets and excludes as above>
+#
+# Run command (frontend):
+#   semgrep scan \
+#     --config p/owasp-top-ten \
+#     --json --output .semgrep/reports/owasp-top-ten-frontend.json \
+#     --exclude "node_modules" \
+#     --exclude "*.spec.ts" \
+#     --exclude "*.conf.js" \
+#     frontend/src/
+
+scan:
+  tool: semgrep
+  version: "1.151.0"
+  engine: OSS
+
+  ruleset:
+    id: p/owasp-top-ten
+    url: https://semgrep.dev/p/owasp-top-ten
+    description: >
+      Official Semgrep OWASP Top 10 ruleset — detects security issues
+      mapped to OWASP Top 10 2021 categories using static analysis.
+      Rules cover injection, broken auth, insecure design, security
+      misconfiguration, and more.
+
+  target:
+    application: OWASP Juice Shop
+    version: v19.1.1
+    language: TypeScript / JavaScript (Node.js / Express)
+    scans:
+      - name: backend
+        paths:
+          - routes/
+          - lib/
+          - models/
+          - data/datacreator.ts
+          - data/datacache.ts
+          - data/staticData.ts
+          - data/types.ts
+          - data/mongodb.ts
+          - app.ts
+          - server.ts
+        files_scanned: 115
+        rules_run: 77
+        findings: 14
+
+      - name: frontend
+        paths:
+          - frontend/src/
+        files_scanned: 457
+        rules_run: 81
+        findings: 0
+
+  exclusions:
+    - data/static/codefixes/   # intentional challenge fix snippets — not production code
+    - node_modules/
+    - build/
+    - rsn/
+    - test/
+    - frontend/                # excluded from backend scan (separate scan)
+    - "*.spec.ts"              # test files
+    - "*.conf.js"              # config/build files
+
+  output:
+    - format: json
+      file: .semgrep/reports/owasp-top-ten.json
+    - format: sarif
+      file: .semgrep/reports/owasp-top-ten-backend.sarif
+    - format: json
+      file: .semgrep/reports/owasp-top-ten-frontend.json
+
+  results_summary:
+    total_unique_vuln_types: 7
+    total_findings: 14
+    true_positives: 7
+    false_positives: 0
+    precision: "100%"
+
+  rules_triggered:
+    - id: javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection
+      url: https://semgrep.dev/r/javascript.sequelize.security.audit.sequelize-injection-express.express-sequelize-injection
+      severity: ERROR
+      cwe: CWE-89
+      owasp: A03:2021
+      findings: 2
+      files: [routes/login.ts, routes/search.ts]
+
+    - id: javascript.lang.security.audit.code-string-concat.code-string-concat
+      url: https://semgrep.dev/r/javascript.lang.security.audit.code-string-concat.code-string-concat
+      severity: ERROR
+      cwe: CWE-95
+      owasp: A03:2021
+      findings: 1
+      files: [routes/userProfile.ts]
+
+    - id: javascript.express.security.audit.express-check-directory-listing.express-check-directory-listing
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-check-directory-listing.express-check-directory-listing
+      severity: WARNING
+      cwe: CWE-548
+      owasp: A05:2021
+      findings: 4
+      files: [server.ts]
+
+    - id: javascript.express.security.audit.express-open-redirect.express-open-redirect
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-open-redirect.express-open-redirect
+      severity: WARNING
+      cwe: CWE-601
+      owasp: A01:2021
+      findings: 1
+      files: [routes/redirect.ts]
+
+    - id: javascript.express.security.audit.express-res-sendfile.express-res-sendfile
+      url: https://semgrep.dev/r/javascript.express.security.audit.express-res-sendfile.express-res-sendfile
+      severity: WARNING
+      cwe: CWE-73
+      owasp: A04:2021
+      findings: 4
+      files: [routes/fileServer.ts, routes/keyServer.ts, routes/logfileServer.ts, routes/quarantineServer.ts]
+
+    - id: javascript.express.security.injection.raw-html-format.raw-html-format
+      url: https://semgrep.dev/r/javascript.express.security.injection.raw-html-format.raw-html-format
+      severity: WARNING
+      cwe: CWE-79
+      owasp: A03:2021
+      findings: 1
+      files: [routes/chatbot.ts]
+
+    - id: javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret
+      url: https://semgrep.dev/r/javascript.jsonwebtoken.security.jwt-hardcode.hardcoded-jwt-secret
+      severity: WARNING
+      cwe: CWE-798
+      owasp: A07:2021
+      findings: 1
+      files: [lib/insecurity.ts]

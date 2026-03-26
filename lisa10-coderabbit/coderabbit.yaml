@@ -1,0 +1,76 @@
+language: en-US
+
+reviews:
+  profile: assertive
+  auto_review:
+    enabled: true
+    drafts: false
+
+cache:
+  enabled: false
+
+path_instructions:
+  - path: "**/codefixes/**"
+    instructions: "Treat as challenge/training code unless clearly reachable from production runtime paths. Prioritize real exploitability evidence and avoid counting intentionally vulnerable demo patterns as production risk by default."
+  - path: "**/challenges/**"
+    instructions: "Treat as challenge/training code unless clearly reachable from production runtime paths. Prioritize real exploitability evidence and avoid counting intentionally vulnerable demo patterns as production risk by default."
+  - path: "models/**"
+    instructions: "Prioritize OWASP A01, A04, A08 and validate authorization boundaries, sensitive data handling, and integrity assumptions."
+  - path: "lib/**"
+    instructions: "Prioritize OWASP A05, A07, A10 and trace source-to-sink flows for injection, auth/session handling, and exceptional-condition safety."
+  - path: "routes/**"
+    instructions: "Prioritize OWASP A01, A05, A07 and check endpoint authorization, input validation, output encoding, and abuse resistance."
+  - path: "server/**"
+    instructions: "Prioritize OWASP A02, A09 and validate secure defaults, header policy, error handling, and logging/monitoring coverage."
+  - path: "data/**"
+    instructions: "Prioritize OWASP A03, A08 and verify supply-chain trust, signed artifacts, and risky seed/test fixtures."
+  - path: "frontend/**"
+    instructions: "Prioritize OWASP A01, A05, A07 and inspect DOM/API usage for XSS, token/session exposure, and client-side authorization assumptions."
+  - path: "config/**"
+    instructions: "Prioritize OWASP A02, A03, A08 and check insecure defaults, secrets exposure, dependency risks, and CI/CD integrity controls."
+
+tools:
+  semgrep:
+    enabled: true
+  gitleaks:
+    enabled: true
+  trufflehog:
+    enabled: true
+  osv_scanner:
+    enabled: true
+  eslint:
+    enabled: true
+  biome:
+    enabled: true
+  opengrep:
+    enabled: true
+
+review_instructions: |
+  Security-only review mode (skip style and non-security refactors unless they directly impact security).
+  Use OWASP Top 10 (2025) taxonomy (A01-A10) for every finding.
+  Use the most specific CWE possible.
+  Follow this method inside the review: detect candidate pattern -> validate in changed-code context -> provide semantic risk judgment.
+  For challenge/codefix branches, mark intentionally vulnerable training patterns as Info candidate unless there is clear production runtime reachability.
+  Require concrete evidence in each finding: file path, exact line(s), source/sink or control point, and exploitability rationale.
+  Add explicit confidence (High/Medium/Low) and verdict label (TP/FP/Info candidate) for downstream verification.
+  If uncertain, mark as Info candidate and request manual verification instead of asserting TP.
+  Deduplicate repeated issues across files and keep one primary finding with references.
+  Keep findings PR-scoped (diff + changed-file context) and avoid assumptions about files not visible in the PR.
+  Output Contract (strict, for parsing):
+  - Start every finding comment with: [SECURITY-FINDING]
+  - Use exactly these key-value lines (one per line):
+    OWASP: A0X - <name>
+    CWE: CWE-<id>
+    Severity: Critical|High|Medium|Low|Info
+    Confidence: High|Medium|Low
+    Verdict: TP-candidate|FP-candidate|Info-candidate
+    File: <repo-relative-path>
+    Line: <line-or-range>
+    Source: <input/source point or N/A>
+    Sink: <sink/control point or N/A>
+    Evidence: <short technical evidence>
+    Exploitability: <why exploitable or why uncertain>
+    Recommendation: <short actionable fix>
+  - After the key-value lines, add optional free-text details under: Notes:
+  - If CWE is unknown, use CWE: CWE-0 and explain in Notes:
+  - If line is uncertain, use the best known line and explain in Notes:

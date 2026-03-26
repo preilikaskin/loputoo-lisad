@@ -1,0 +1,92 @@
+env:
+  contexts:
+    - name: api-local
+      urls:
+        - http://localhost:3000
+      includePaths:
+        - ^http://localhost:3000/b2b/v2.*$
+        - ^http://localhost:3000/rest/.*$
+      excludePaths:
+        - ^https?://cdnjs\.cloudflare\.com.*$
+        - ^https?://firefox-settings-attachments\.cdn\.mozilla\.net/.*$
+        - ^https?://(?!localhost:3000).*$
+      authentication:
+        method: json
+        parameters:
+          loginPageUrl: http://localhost:3000/#/login
+          loginRequestUrl: http://localhost:3000/rest/user/login
+          loginRequestBody: '{"email":"{%username%}","password":"{%password%}"}'
+        verification:
+          method: response
+          loggedInRegex: '"authentication"\s*:\s*\{\s*"token"'
+          loggedOutRegex: 'Invalid email or password'
+      sessionManagement:
+        method: headers
+        parameters:
+          Authorization: 'Bearer {%json:authentication.token%}'
+      users:
+        - name: api-admin
+          credentials:
+            username: admin@juice-sh.op
+            password: admin123
+        - name: api-accounting
+          credentials:
+            username: accountant@juice-sh.op
+            password: i am an awesome accountant
+  parameters:
+    failOnError: true
+    progressToStdout: true
+
+jobs:
+  - type: openapi
+    parameters:
+      apiFile: /Users/kaisaliiv/Desktop/juice-shop-test-2026/swagger.yml
+      targetUrl: http://localhost:3000
+
+  - type: spider
+    parameters:
+      context: api-local
+      user: api-admin
+      url: http://localhost:3000/rest
+      maxDuration: 3
+
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      maxAlertsPerRule: 20
+      scanOnlyInScope: true
+
+  - type: activeScan-config
+    parameters:
+      defaultPolicy: API-Minimal
+      maxRuleDurationInMins: 3
+      maxScanDurationInMins: 20
+
+  - type: activeScan
+    parameters:
+      context: api-local
+      user: api-admin
+      url: http://localhost:3000/rest
+
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+
+  - type: outputSummary
+    parameters:
+      format: Long
+      summaryFile: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports/api-summary.json
+
+  - type: report
+    parameters:
+      template: traditional-html
+      reportDir: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports
+      reportFile: api-report.html
+      reportTitle: Juice Shop ZAP API Scan
+
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /Users/kaisaliiv/Desktop/juice-shop-test-2026/.zap/reports
+      reportFile: api-report.json
+      reportTitle: Juice Shop ZAP API Scan JSON

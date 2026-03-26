@@ -1,0 +1,54 @@
+# SCA (Software Composition Analysis) Scan Configuration
+# Puksiir Towing Company App — thesis research (chapter 4.2)
+# Tool: OWASP Dependency-Check 12.2.0
+#
+# -------------------------------------------------------------
+# OWASP Dependency-Check (backend + frontend)
+# -------------------------------------------------------------
+# Run command:
+#   dependency-check \
+#     --project "Puksiir" \
+#     --scan backend/ \
+#     --scan frontend/package-lock.json \
+#     --format JSON --format HTML \
+#     --out sca/reports/ \
+#     --exclude "**/bin/**" \
+#     --exclude "**/obj/**" \
+#     --exclude "**/node_modules/**" \
+#     --exclude "**/App.Tests/**" \
+#     --exclude "**/TestResults/**" \
+#     --exclude "**/dist/**"
+#
+
+scan:
+  tools:
+    - name: OWASP Dependency-Check
+      version: "12.2.0"
+      type: standalone
+      description: >
+        Scans .csproj (NuGet) and package-lock.json (npm) for known CVEs
+        using the NVD database.
+
+  target:
+    application: Puksiir Towing Company
+    stack: "C# / .NET 10 + Vue 3 + PostgreSQL 16"
+    manifests:
+      - backend/Puksiir2026BE.sln      # 20 .csproj projects
+      - frontend/package.json           # Vue 3 + PrimeVue + Vite
+
+  exclusions:
+    - bin/
+    - obj/
+    - node_modules/
+    - App.Tests/
+    - TestResults/
+    - dist/
+    - k6/
+
+  output:
+    - tool: dependency-check
+      format: json
+      file: sca/reports/dependency-check-report.json
+    - tool: dependency-check
+      format: html
+      file: sca/reports/dependency-check-report.html
