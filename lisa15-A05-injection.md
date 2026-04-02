@@ -39,33 +39,37 @@ Covers SQL injection, XSS, NoSQL injection, command injection, LDAP injection, e
 
 ## Search Patterns (grep)
 ### Group 1: SQL Injection (CWE-89, 564)
-- `query\(|sequelize\.query|\.raw\(|rawQuery`
-- `\+ .*req\.|req\..*\+|\$\{.*req\.` (string concatenation with user input)
-- `SELECT|INSERT|UPDATE|DELETE|DROP` with variables
-- `models\.sequelize` — ORM usage (evaluate whether parameterized)
+- `FromSqlRaw|ExecuteSqlRaw|ExecuteSqlRawAsync|SqlCommand|SqlDataReader`
+- `string\.Format.*SELECT|string\.Format.*INSERT|string\.Format.*UPDATE|string\.Format.*DELETE`
+- `\$".*SELECT|\$".*INSERT|\$".*WHERE` — string interpolation in SQL (check if `FromSqlInterpolated` is used safely)
+- `FromSqlInterpolated|ExecuteSqlInterpolated` — these are safe (EF Core parameterizes automatically), mark as Info
+- `.Where\(|.FirstOrDefaultAsync\(|.ToListAsync\(` — LINQ queries (EF Core parameterizes, verify no raw string concat)
 
 ### Group 2: XSS (CWE-79, 80, 83, 87, 116)
-- `innerHTML|outerHTML|document\.write|\.html\(`
-- `dangerouslySetInnerHTML|bypassSecurityTrust`
-- `sanitize|DomSanitizer|escape|encode`
-- `res\.send\(.*req\.|res\.json\(.*req\.` (reflected input)
+- `Html\.Raw|@Html\.Raw` — unescaped HTML output in Razor views
+- `v-html` — Vue directive for rendering raw HTML (bypasses auto-escaping)
+- `innerHTML|outerHTML|document\.write` — DOM XSS in frontend
+- `HtmlEncoder|JavaScriptEncoder|UrlEncoder` — encoding functions (presence = Info)
+- `Content\(.*text/html|return Content\(` — returning raw content
 
 ### Group 3: Command/Code Injection (CWE-77, 78, 94, 95)
-- `eval\(|exec\(|spawn\(|execFile|child_process`
-- `Function\(|setTimeout.*string|setInterval.*string`
-- `vm\.run|vm\.Script|require\(.*req\.`
+- `Process\.Start|ProcessStartInfo|cmd\.exe|/bin/bash`
+- `Assembly\.Load|Activator\.CreateInstance|Type\.GetType` — dynamic type loading
+- `Reflection|MethodInfo\.Invoke` — reflective code execution
+- `CSharpScript|Roslyn|DynamicExpresso` — runtime code compilation
 
 ### Group 4: Other injections (CWE-90, 91, 93, 113)
-- `xml|xpath|ldap|LDAP`
-- `\r\n|\n.*header|setHeader.*req\.`
-- `template|render.*req\.|handlebars|pug|ejs`
+- `XmlDocument|XPath|XPathNavigator|SelectNodes` — XML/XPath injection
+- `DirectorySearcher|DirectoryEntry|LDAP` — LDAP injection
+- `\r\n|Response\.Headers\.Add.*req|AppendHeader` — HTTP header injection
+- `Razor|RazorPage|@model` — template injection in Razor views
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/search.ts | 34 | CWE-89 | SQL query with user input without parameterization | High | TP |
+| 1 | WebApp/ApiControllers/ServiceApiController.cs | 34 | CWE-89 | SQL query with user input via FromSqlRaw without parameterization | High | TP |
 ```
 
 At the end of the summary, include:

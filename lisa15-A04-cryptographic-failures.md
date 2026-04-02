@@ -37,26 +37,29 @@ Covers weak cryptography, missing encryption, hardcoded keys, insecure hash algo
 
 ## Search Patterns (grep)
 ### Group 1: Weak algorithms (CWE-326, 327, 328, 916)
-- `md5|MD5|sha1|SHA1|SHA-1|des|DES|rc4|RC4`
-- `createHash|createCipher|createDecipher`
-- `bcrypt|scrypt|argon2|pbkdf2|PBKDF2` (verify presence — if found, mark as Info; if absent where password hashing occurs, mark as TP)
+- `MD5\.Create|SHA1\.Create|SHA1Managed|MD5CryptoServiceProvider|DES|TripleDES|RC2`
+- `System\.Security\.Cryptography` — check which algorithms are used
+- `PasswordHasher|IPasswordHasher|HashPassword|VerifyHashedPassword` — ASP.NET Identity password hashing (confirm it uses PBKDF2 with sufficient iterations)
+- `Rfc2898DeriveBytes|PBKDF2|Argon2|bcrypt` — verify appropriate KDF usage
 
 ### Group 2: Hardcoded keys/secrets (CWE-321, 330, 338)
-- `secret.*=.*['"]|key.*=.*['"]|password.*=.*['"]`
-- `Math\.random` (CWE-338 — weak PRNG; note: `crypto.randomBytes` and `uuid` v4 are secure alternatives, do not flag those as vulnerabilities)
-- `iv.*=.*['"]|nonce.*=.*['"]|salt.*=.*['"]`
+- `"Key".*:.*"|"Secret".*:.*"|"Password".*:.*"` in appsettings*.json
+- `SymmetricSecurityKey|SigningCredentials|IssuerSigningKey` — check if key is from config or hardcoded
+- `Random\(\)|new Random` (CWE-338 — weak PRNG; `RandomNumberGenerator` and `Guid.NewGuid()` are secure alternatives)
+- `Convert\.ToBase64String|Convert\.FromBase64String` — encoding is not encryption
 
 ### Group 3: Transport/storage (CWE-319, 523, 818)
-- `http://|HTTP` (cleartext transport — high false-positive rate; only flag when sensitive data is actually transmitted, ignore documentation URLs, comments, and non-sensitive API references)
-- `cleartext|plain.*text|unencrypted`
-- `localStorage|sessionStorage` (sensitive data in browser)
+- `http://` — cleartext transport (only flag when sensitive data is transmitted; ignore documentation URLs, comments, localhost dev)
+- `RequireHttpsMetadata.*false` — HTTPS not enforced
+- `UseHttpsRedirection|UseHsts` — verify HTTPS redirect is enabled
+- `localStorage|sessionStorage` in frontend code — sensitive data in browser storage
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | lib/insecurity.ts | 23 | CWE-328 | MD5 hash used for password hashing | High | TP |
+| 1 | WebApp/Program.cs | 23 | CWE-321 | Hardcoded JWT signing key in appsettings.Development.json | Medium | TP |
 ```
 
 At the end of the summary, include:

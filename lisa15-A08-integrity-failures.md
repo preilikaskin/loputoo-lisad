@@ -18,30 +18,36 @@ Covers insecure deserialization, missing integrity checks, CI/CD pipeline compro
 
 ## Search Patterns (grep)
 ### Group 1: Deserialization (CWE-502)
-- `deserialize|unserialize|JSON\.parse|yaml\.load`
-- `pickle|marshal|ObjectInputStream`
-- `node-serialize|serialize-javascript`
+- `JsonSerializer\.Deserialize|JsonConvert\.DeserializeObject|Newtonsoft` — JSON deserialization
+- `BinaryFormatter|ObjectStateFormatter|SoapFormatter|LosFormatter` — dangerous binary deserialization
+- `TypeNameHandling|TypeNameAssemblyFormat` — Newtonsoft type handling (Auto/All = dangerous)
+- `\[FromBody\]|\[FromForm\]|\[FromQuery\]` — model binding from user input (check what types)
+- `XmlSerializer|DataContractSerializer` — XML deserialization
 
 ### Group 2: Integrity checks (CWE-345, 353, 494)
-- `integrity|checksum|hash.*verify|signature`
-- `<script.*src=` (manually check if `integrity` attribute is present — grep cannot detect attribute absence reliably)
-- `download|fetch.*exec|curl|wget`
+- `integrity=|crossorigin` — SRI attributes on external scripts (check presence in HTML templates)
+- `<script.*src=|<link.*href=` — manually check if external resources have `integrity` attribute
+- `HttpClient\.GetAsync|DownloadFileAsync` — downloading code/data without verification
+- `NuGet\.Config|<packageSources>` — trusted package sources
 
 ### Group 3: Mass assignment (CWE-915)
-- `Object\.assign|spread.*req\.body|\.\.\..*req\.body`
-- `Model\.(create|save|update|build).*req\.body|\.(create|update)\(.*req\.body` (req.body passed directly into ORM method)
-- `allowlist|whitelist|pick\(|omit\(` (protective patterns — if present, mark as Info/FP; their absence in routes handling req.body is the actual vulnerability)
+- `\[Bind\(|\[BindProperty\(` — whitelisted model binding (presence = protective)
+- `\[FromBody\].*model|\[FromBody\].*entity` — check if whole entity is bound from request body
+- API controllers accepting domain entities directly vs DTOs — DTO pattern reduces mass assignment risk
+- `TryUpdateModelAsync|UpdateModel` — manual model update (check which properties)
 
 ### Group 4: Cookie integrity (CWE-565, 784)
-- `cookie|Cookie|signed.*cookie|cookie.*sign`
-- `jwt.*verify|token.*valid`
+- `CookieOptions|CookieBuilder|Append.*cookie`
+- `HttpOnly|Secure|SameSite|SameSiteMode` — cookie security flags
+- `JwtBearerEvents|OnMessageReceived` — JWT from cookie extraction
+- `DataProtection|IDataProtector|Protect\(|Unprotect\(` — cookie data protection
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/order.ts | 30 | CWE-915 | req.body passed directly to model via Object.assign | Medium | TP |
+| 1 | WebApp/ApiControllers/ServiceApiController.cs | 30 | CWE-915 | Domain entity directly bound from [FromBody] without DTO | Medium | TP |
 ```
 
 At the end of the summary, include:

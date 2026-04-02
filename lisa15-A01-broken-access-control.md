@@ -48,46 +48,48 @@ OWASP Top 10:2025 A01 — Broken Access Control
 
 ## Search Patterns (grep)
 ### Group 1: Authorization (CWE-284, 285, 862, 863, 639, 566, 425)
-- `isAuthorized|isAuthenticated|authorize|security.isAuthorized`
-- `role|admin|isAdmin`
-- `req\.params\.id|req\.query\.id|req\.body\.id` (user-controlled ID)
-- Routes without middleware (routes/ files missing auth check)
+- `\[Authorize|\[AllowAnonymous|Authorize\(` — check all controllers/actions for auth attributes
+- `Roles\s*=|Policy\s*=|RoleConstants` — role-based access rules
+- `User\.FindFirst|User\.IsInRole|User\.Claims` — user identity lookups (check IDOR: is the user's own ID enforced?)
+- Controllers WITHOUT `[Authorize]` — scan ApiControllers/ and Areas/ for missing auth
+- `FindAsync\(id\)|FirstOrDefaultAsync` — check if user ownership is validated before returning data
 
 ### Group 2: Information leak (CWE-200, 201, 359, 497, 540, 615, 922)
-- `password|secret|key|token|apiKey|api_key` (hardcoded values)
-- `res\.json|res\.send` with sensitive fields
+- `password|secret|key|token|apiKey` (hardcoded values in appsettings, Program.cs)
+- `Ok\(|return Json\(|return View\(` — check what data is returned to the client
 - Comments containing TODO, FIXME, hack, password, secret
+- `appsettings\.json|appsettings\.Development\.json` — secrets in config files
 
 ### Group 3: Path traversal (CWE-22, 23, 36, 219, 538, 548, 552)
-- `path\.join|path\.resolve|__dirname`
-- `req\.params\.\w+.*\.(read|write|access|open|unlink)`
-- `ftp|upload|download|file` in routes
-- `express\.static|serveStatic|directory listing`
+- `Path\.Combine|Path\.GetFullPath|Path\.Join`
+- `FileStream|StreamReader|StreamWriter|System\.IO\.File`
+- `IFormFile|upload|download|file` in controllers
+- `UseStaticFiles|UseDirectoryBrowser|PhysicalFileProvider`
 
 ### Group 4: CSRF/CORS/SSRF (CWE-352, 918, 441, 1275)
-- `cors|CORS|Access-Control|origin`
-- `csrf|csurf|_csrf`
-- `fetch|axios|request|http\.get|https\.get` (server-side requests)
-- `cookie|sameSite|SameSite|httpOnly|secure`
+- `AddCors|WithOrigins|AllowAnyOrigin|AllowCredentials`
+- `ValidateAntiForgeryToken|AntiForgery|IgnoreAntiforgeryToken`
+- `HttpClient|IHttpClientFactory|GetAsync|PostAsync` (server-side requests)
+- `CookieOptions|SameSite|HttpOnly|Secure|sameSiteMode`
 
 ### Group 5: JWT/session (CWE-284 subset)
-- `jwt|jsonwebtoken|JWT|token`
-- `sign|verify|decode|secret`
-- `session|cookie|express-session`
-- `expir|ttl|maxAge`
+- `JwtBearer|JwtSecurityToken|TokenValidationParameters`
+- `IssuerSigningKey|SymmetricSecurityKey|SigningCredentials`
+- `RefreshToken|ClockSkew|ValidateLifetime`
+- `Request\.Cookies\["jwt"|OnMessageReceived` — cookie-based JWT extraction
 
 ### Group 6: Redirect/files (CWE-601, 668, 732, 749)
-- `redirect|302|301|location|Location`
-- `url.*req\.|req\.query\.url|req\.body\.url|req\.params\.url`
-- `chmod|chown|permission`
-- `eval|exec|spawn|Function\(` (dangerous methods)
+- `Redirect\(|RedirectToAction|RedirectPermanent|LocalRedirect`
+- `returnUrl|ReturnUrl|redirect` — open redirect via user-controlled URL
+- `Process\.Start|ProcessStartInfo` — dangerous OS process invocation
+- `Assembly\.Load|Activator\.CreateInstance|Type\.GetType` — dynamic type loading
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/login.ts | 45 | CWE-285 | Missing authorization check on admin endpoint | High | TP |
+| 1 | WebApp/ApiControllers/PersonApiController.cs | 45 | CWE-285 | Missing authorization check on admin endpoint | High | TP |
 ```
 
 At the end of the summary, include:

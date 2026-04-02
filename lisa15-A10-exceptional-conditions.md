@@ -21,31 +21,34 @@ Covers improper exception handling, uncaught errors, information leaks through e
 ## Otsimustrid (grep)
 ### Grupp 1: Try/catch käsitlus (CWE-248, 396, 544)
 - `catch\s*\(` — üldised catch blokid
-- `catch.*\{[\s]*\}|catch.*\{\s*\/\/` — tühjad catch'id
-- `catch.*console\.log` — catch mis ainult logib
-- `catch.*next\(` — kas edastatakse error middleware'le?
+- `catch\s*\(Exception|catch\s*\(System\.Exception` — liiga lai catch (CWE-396)
+- `catch.*\{\s*\}|catch.*\{\s*\/\/` — tühjad catch'id
+- `catch.*_logger\.Log` — kas catch logib ja käsitleb korralikult?
+- `throw;|throw ex;` — kas throw säilitab stack trace'i? (`throw;` on korrektne, `throw ex;` kaotab stack trace'i)
 
 ### Grupp 2: Kontrollimata tagastusväärtused (CWE-252, 391)
-- `\.then\(` ilma `.catch\(` blokita
-- `await ` ilma try/catch'ita
-- `callback.*err.*null|callback\(null`
+- `\.Result|.GetAwaiter\(\)\.GetResult\(\)` — sünkroonne async-blokeering (potentsiaalne deadlock)
+- `await ` ilma try/catch'ita kriitilistes tehtedes
+- `Task\.Run|Task\.Factory\.StartNew` — kas tulemus on kontrollitud?
+- `TryParse|TryGetValue` — kas tagastusväärtus on kontrollitud? (hea muster: `if (!Guid.TryParse(..., out var id)) return BadRequest()`)
 
 ### Grupp 3: Error info leak (CWE-209 koostöös, CWE-703)
-- `res\.status\(500\)|res\.send.*err|res\.json.*err`
-- `next\(err\)|next\(error\)`
-- `stack|stackTrace|err\.message` vastusesse
+- `StatusCode\(500|InternalServerError|Problem\(` — kas 500 vastusesse satub stack trace?
+- `ex\.Message|ex\.ToString\(\)|ex\.StackTrace` vastusesse (Ok(), Json(), Content())
+- `BadRequest\(.*ex|NotFound\(.*ex` — exception message kliendile
 
 ### Grupp 4: Globaalne error handling (CWE-544, 755)
-- `process\.on.*uncaughtException|process\.on.*unhandledRejection`
-- `app\.use.*err.*req.*res.*next` — Express error middleware
-- `errorHandler|error-handler`
+- `UseExceptionHandler|app\.UseStatusCodePages` — globaalne error middleware
+- `UseDeveloperExceptionPage` — ei tohi olla production'is
+- `IExceptionHandler|ExceptionHandlerMiddleware` — custom error handler
+- `AppDomain\.CurrentDomain\.UnhandledException|TaskScheduler\.UnobservedTaskException` — globaalne exception püüdmine
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/payment.ts | 42 | CWE-248 | Empty catch block in payment processing | Medium | TP |
+| 1 | WebApp/ApiControllers/ServiceApiController.cs | 42 | CWE-248 | Empty catch block in service processing | Medium | TP |
 ```
 
 At the end of the summary, include:

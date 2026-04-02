@@ -28,32 +28,35 @@ Covers weak authentication, session management flaws, allowing credential stuffi
 
 ## Search Patterns (grep)
 ### Group 1: Login/authentication (CWE-287, 306, 307, 521)
-- `login|Login|authenticate|signIn|sign-in`
-- `password|passwd|credential`
-- `bcrypt\.compare|compare.*password|verify.*password`
-- `brute.*force|lockout|maxAttempts|failedAttempts`
+- `SignInManager|UserManager|PasswordSignInAsync|CheckPasswordSignInAsync`
+- `Login|Authenticate|SignIn|AccountController` — auth endpoints
+- `PasswordValidator|RequiredLength|RequireDigit|RequireUppercase` — password policy
+- `MaxFailedAccessAttempts|DefaultLockoutTimeSpan|LockoutEnabled` — brute-force protection
+- `LoginLimit|RateLimitPartition` — rate limiting on auth endpoints
 
 ### Group 2: Hardcoded credentials (CWE-259, 798)
-- `password.*=.*['"]|admin.*password|default.*password`
-- `username.*=.*['"].*password.*=.*['"]`
+- `password.*=.*"|Password.*=.*"|Admin123|CeoDev|PuksDev|PesulaDev` — default/dev passwords
+- `admin@puksiir|ceo@puksiir|CreateAsync.*password` — seed data with credentials
+- `appsettings.*Password|appsettings.*Secret|appsettings.*Key` — secrets in config
 
 ### Group 3: Session management (CWE-384, 613)
-- `session|express-session|cookie-session`
-- `regenerate|destroy|invalidate`
-- `maxAge|expires|ttl.*session`
-- `sessionId|connect\.sid`
+- `RefreshToken|refreshToken|TokenExpirationTime|AccessTokenLifespan`
+- `ClockSkew|ValidateLifetime|ExpirationDate` — token expiration settings
+- `cookie.*jwt|Request\.Cookies|Response\.Cookies` — cookie-based session
+- `AbsoluteExpiration|SlidingExpiration|maxAge` — session timeout
 
 ### Group 4: Password recovery (CWE-620, 640)
-- `reset.*password|forgot.*password|recover`
-- `security.*question|answer`
-- `token.*reset|reset.*token`
+- `ResetPassword|ForgotPassword|GeneratePasswordResetTokenAsync`
+- `ChangePassword|ChangePasswordAsync` — verify current password required
+- `EmailConfirmation|ConfirmEmail|GenerateEmailConfirmationTokenAsync`
+- `SecurityQuestion|SecurityAnswer` — weak recovery patterns
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/login.ts | 45 | CWE-307 | Missing brute-force protection on authentication endpoint | High | TP |
+| 1 | WebApp/ApiControllers/Identity/AccountController.cs | 45 | CWE-307 | Missing brute-force protection on authentication endpoint | High | TP |
 ```
 
 At the end of the summary, include:

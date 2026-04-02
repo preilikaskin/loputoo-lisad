@@ -13,26 +13,28 @@ Covers missing logging, insufficient monitoring, log manipulation.
 
 ## Search Patterns (grep)
 ### Group 1: Logging presence (CWE-778, 223)
-- `logger|winston|morgan|pino|bunyan|log4js`
-- `console\.log|console\.error` (used instead of proper logging?)
-- `app\.use.*morgan|app\.use.*logger`
-- Routes WITHOUT logging (especially auth/admin endpoints)
+- `ILogger|_logger|LogInformation|LogWarning|LogError|LogCritical`
+- `AddLogging|UseSerilog|UseNLog|AddSerilog` — logging framework configuration
+- `builder\.Logging|ILoggerFactory` — logging setup in Program.cs
+- Controllers/endpoints WITHOUT `_logger.Log` — especially auth/admin endpoints (scan ApiControllers/ and Areas/)
 
 ### Group 2: Sensitive data in logs (CWE-532, 779)
-- `log.*password|log.*token|log.*secret|log.*key`
-- `console\.log.*req\.body|console\.log.*req\.headers`
-- `JSON\.stringify.*req\.body` into logs
+- `Log.*password|Log.*token|Log.*secret|Log.*key|Log.*credit`
+- `Log.*req\.Body|Log.*Request\.Body|Log.*Request\.Headers`
+- `JsonSerializer\.Serialize.*password` — serializing sensitive objects into logs
+- `LogInformation.*\{Email\}|LogInformation.*\{Password\}` — structured logging with sensitive fields
 
 ### Group 3: Log manipulation (CWE-117)
-- `\n.*log|\\n.*log|req\..*log` (CRLF injection into logs)
-- `sanitize.*log|escape.*log` (are logs sanitized?)
+- Verify that structured logging (`{placeholder}` syntax) is used instead of string concatenation
+- `\$".*_logger|string\.Format.*_logger` — string interpolation/concatenation in log messages (allows log injection)
+- `\n|\r` in user-controlled input flowing into logs
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/admin.ts | 55 | CWE-778 | Admin endpoint without security logging | Low | TP |
+| 1 | WebApp/ApiControllers/Identity/AccountController.cs | 55 | CWE-778 | Admin endpoint without security logging | Low | TP |
 ```
 
 At the end of the summary, include:

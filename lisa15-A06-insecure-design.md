@@ -46,31 +46,36 @@ Covers design-level deficiencies: missing business risk profiling, missing rate 
 
 ## Search Patterns (grep)
 ### Group 1: File upload (CWE-434, 73, 646)
-- `upload|multer|formidable|busboy`
-- `mimetype|file\.type|extension|\.ext`
-- `rename|move|mv\(`
+- `IFormFile|FormFile|ContentDisposition` — file upload handling
+- `ContentType|MimeType|\.Extension|Path\.GetExtension` — file type validation
+- `SaveAs|CopyTo|CopyToAsync|File\.WriteAll` — file saving
+- `PhysicalFileProvider|UseStaticFiles` — static file serving config
 
 ### Group 2: Cleartext data (CWE-256, 312, 313, 311, 522)
-- `password.*plain|cleartext|unencrypt`
-- `writeFile.*password|writeFile.*secret|writeFile.*token`
-- `console\.log.*password|console\.log.*token`
+- `password.*plain|cleartext|unencrypt` — storing passwords in plaintext
+- `File\.WriteAll.*password|File\.WriteAll.*secret|File\.WriteAll.*token`
+- `_logger\.Log.*password|_logger\.Log.*token` — sensitive data in logs
+- `ToString\(\).*password|JsonSerializer.*password` — serializing credentials
 
 ### Group 3: Rate limiting / workflow (CWE-799, 840, 841)
-- `rate.*limit|rateLimit|express-rate-limit|throttle`
-- `captcha|CAPTCHA|recaptcha`
-- `retry|attempts|maxAttempts|lockout`
+- `AddRateLimiter|RateLimitPartition|FixedWindowLimiter|SlidingWindowLimiter`
+- `PermitLimit|Window.*TimeSpan|QueueLimit` — rate limit configuration values
+- `UseRateLimiter|EnableRateLimiting|DisableRateLimiting` — rate limiter applied to endpoints?
+- `captcha|CAPTCHA|recaptcha` — bot protection
+- `MaxFailedAccessAttempts|LockoutTimeSpan` — brute-force protection
 
 ### Group 4: Client-side security (CWE-602, 472, 807)
-- `disabled.*server|client.*valid|frontend.*check`
-- `hidden.*input|type=.*hidden`
-- `role.*client|admin.*frontend`
+- `ModelState\.IsValid|\[Required\]|\[StringLength\]|DataAnnotations` — server-side validation present?
+- `\[Bind\(|\[BindProperty\(` — whitelisted model binding
+- `v-if.*role|v-show.*admin|isAdmin` in frontend — client-side role checks (must be enforced server-side too)
+- `disabled|readonly` in frontend forms — client-side restrictions that can be bypassed
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | routes/login.ts | 67 | CWE-799 | Missing rate limiting on login endpoint | Medium | TP |
+| 1 | WebApp/ApiControllers/Identity/AccountController.cs | 67 | CWE-799 | Missing rate limiting on login endpoint | Medium | TP |
 ```
 
 At the end of the summary, include:

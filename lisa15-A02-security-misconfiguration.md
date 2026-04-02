@@ -29,33 +29,35 @@ Covers missing security hardening, misconfigured permissions, unnecessary enable
 
 ## Search Patterns (grep)
 ### Group 1: Error handling / info leak (CWE-209, 756)
-- `stack|stackTrace|err\.message|error\.message`
-- `console\.log|console\.error|console\.warn` (in production)
-- `NODE_ENV|development|production`
-- `app\.use.*errorHandler|express\.errorHandler`
+- `UseDeveloperExceptionPage|DeveloperExceptionPage` — dev error page in production
+- `UseExceptionHandler|app\.UseStatusCodePages` — custom error handling present?
+- `StackTrace|Exception\.Message|ex\.Message|ex\.ToString` — stack trace leaking to client
+- `IsDevelopment\(\)|IsProduction\(\)` — environment-conditional logic
 
 ### Group 2: Headers and security configuration (CWE-16, 942, 614, 1004)
-- `helmet|X-Frame|X-Content-Type|Content-Security-Policy|CSP`
-- `httpOnly|secure|sameSite` (cookie settings)
-- `cors\(|Access-Control-Allow-Origin`
-- `X-Powered-By|server.*header`
+- `Content-Security-Policy|X-Frame-Options|X-Content-Type-Options|Referrer-Policy`
+- `Strict-Transport-Security|UseHsts|UseHttpsRedirection`
+- `RequireHttpsMetadata.*false` — JWT allows HTTP in non-dev?
+- `AddCors|AllowAnyOrigin|AllowAnyHeader|AllowAnyMethod` — overly permissive CORS
+- `unsafe-inline|unsafe-eval` — CSP weaknesses
 
 ### Group 3: Hardcoded secrets / config (CWE-260, 315, 526, 541, 547)
-- `password.*=.*['"]|secret.*=.*['"]|key.*=.*['"]`
-- `process\.env\.|dotenv|\.env`
-- `default.*password|admin.*password`
+- `"Key".*:|"Secret".*:|"Password".*:` in appsettings*.json
+- `Configuration\[|config\[|GetValue<|GetSection` — config access (verify secrets aren't hardcoded)
+- `builder\.Configuration|IConfiguration` — how config is loaded
+- `User-Secrets|AddUserSecrets|AddEnvironmentVariables` — proper secret management?
 
 ### Group 4: XML/DTD (CWE-611, 776)
-- `xml|XML|parseXml|libxmljs|xml2js|DOMParser`
-- `DOCTYPE|ENTITY|SYSTEM`
-- `xxe|XXE`
+- `XmlDocument|XmlReader|XDocument|XmlTextReader`
+- `DtdProcessing|ProhibitDtd|XmlReaderSettings`
+- `XmlSerializer|DataContractSerializer`
 
 ## Output Format
 Return a table:
 ```
 | # | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |
 |---|------|------|-----|--------------------------|----------|------------|
-| 1 | server.ts | 12 | CWE-209 | Stack trace leaks to client in errorHandler | Medium | TP |
+| 1 | WebApp/Program.cs | 12 | CWE-209 | Stack trace leaks to client via UseDeveloperExceptionPage | Medium | TP |
 ```
 
 At the end of the summary, include:

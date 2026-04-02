@@ -6,30 +6,34 @@
 
 ## Prompt
 
-You are a security analyst. Your task is to analyze the OWASP Juice Shop v19.1.1 codebase for security vulnerabilities using the OWASP Top 10:2025 framework.
+You are a security analyst. Your task is to analyze the Puksiir Towing Company web application codebase for security vulnerabilities using the OWASP Top 10:2025 framework.
 
 ### Preparation
 
 1. Read the methodology file:
-   `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/methodology.md`
+   `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/methodology.md`
 2. Read all 10 category prompt files (read them all before starting analysis):
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A01-broken-access-control.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A02-security-misconfiguration.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A03-supply-chain.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A04-cryptographic-failures.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A05-injection.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A06-insecure-design.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A07-authentication-failures.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A08-integrity-failures.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A09-logging-failures.md`
-   - `/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/prompts/A10-exceptional-conditions.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A01-broken-access-control.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A02-security-misconfiguration.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A03-supply-chain.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A04-cryptographic-failures.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A05-injection.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A06-insecure-design.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A07-authentication-failures.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A08-integrity-failures.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A09-logging-failures.md`
+   - `/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/A10-exceptional-conditions.md`
 
 ### Target Application
-- Repo: `/Users/kaisaliiv/Desktop/juice-shop-test-2026`
-- Primary code: `routes/`, `lib/`, `models/`, `server.ts`, `config/`, `data/`, `frontend/src/`
-- **Do not read** `test/`, `spec/`, `e2e/`, `node_modules/`
-  - `node_modules/` — dependency analysis is handled by the SCA layer (npm audit, Dependency-Check)
-  - `test/`, `spec/`, `e2e/` — test code does not reach production; Semgrep excludes these as well, so the AI layer scope must be comparable
+- Repo: `/Users/kaisaliiv/Projects/puksiir2026-security-tests`
+- Stack: C# / .NET 10 (ASP.NET backend) + Vue 3 / TypeScript (frontend) + PostgreSQL 16
+- Backend code: `backend/WebApp/`, `backend/App.BLL/`, `backend/App.DAL.EF/`, `backend/App.Domain/`, `backend/App.API/`, `backend/App.DTO/`, `backend/App.BLL.DTO/`, `backend/App.DAL.DTO/`, `backend/App.Contracts.DAL/`, `backend/App.BLL.Contracts/`
+- Frontend code: `frontend/src/`
+- **Do not read** `bin/`, `obj/`, `Migrations/`, `App.Tests/`, `TestResults/`, `Base.*`, `Helpers/`, `node_modules/`, `dist/`, `k6/`
+  - `node_modules/`, NuGet packages — dependency analysis is handled by the SCA layer (OWASP Dependency-Check)
+  - `App.Tests/`, `TestResults/` — test code does not reach production; Semgrep excludes these as well, so the AI layer scope must be comparable
+  - `Base.*`, `Helpers/` — generic base classes, not application-specific logic
+  - `Migrations/` — auto-generated EF Core migration files
 
 ### Analysis Workflow
 Process all 10 categories sequentially (A01 → A02 → … → A10):
@@ -41,7 +45,7 @@ Process all 10 categories sequentially (A01 → A02 → … → A10):
 
 ### Output
 Write **one consolidated report** to:
-`/Users/kaisaliiv/Desktop/lõputöö/testing/ai-local/reports/ai-security-report.md`
+`/Users/kaisaliiv/Desktop/Lõputöö/ai-prompts/results/ai-security-report.md`
 
 Report structure (as described in the methodology file):
 1. **Findings table**: `| # | Prompt | File | Line | CWE | Vulnerability description | Severity | TP/FP/Info |`
