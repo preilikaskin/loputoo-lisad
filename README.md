@@ -32,9 +32,9 @@ See repositoorium sisaldab lõputöö lisade täisversioone. Lõputöö PDFs on 
 |------|------|-----------|
 | 16 | `lisa16-dast-baseline-passive.yaml` | DAST passiivne skaneering (ZAP) |
 | 17 | `lisa17-dast-baseline-active-admin.yaml` | DAST aktiivne — admin roll |
-| 18 | `lisa18-dast-baseline-active-accounting.yaml` | DAST aktiivne — haldusjuhi roll |
-| 19 | `lisa19-dast-baseline-active-deluxe.yaml` | DAST aktiivne — puksiirijuhi roll |
-| 20 | `lisa20-dast-baseline-active-customer.yaml` | DAST aktiivne — pesulaoperaatori roll |
+| 18 | `lisa18-dast-baseline-active-haldusjuht.yaml` | DAST aktiivne — haldusjuhi roll |
+| 19 | `lisa19-dast-baseline-active-puksiirijuht.yaml` | DAST aktiivne — puksiirijuhi roll |
+| 20 | `lisa20-dast-baseline-active-pesulaoperaator.yaml` | DAST aktiivne — pesulaoperaatori roll |
 | 21 | `lisa21-dast-api-local.yaml` | DAST API-skaneering |
 | 22 | `lisa22-sast-scan-config.yml` | SAST Semgrep konfiguratsioon |
 | 23 | `lisa23-sca-scan-config.yml` | SCA Dependency-Check konfiguratsioon |
