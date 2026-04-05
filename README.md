@@ -26,7 +26,7 @@ See repositoorium sisaldab lõputöö lisade täisversioone. Lõputöö PDFs on 
 | 14 | `lisa14-methodology.md` | Claude Code metoodikajuhis |
 | 15 | `lisa15-A01-*.md` … `lisa15-A10-*.md` | OWASP Top 10 kategooriapromptid (10 faili) |
 
-## Puksiiri haldusrakendus (Lisa 16–27)
+## Puksiiri haldusrakendus (Lisa 16–28)
 
 | Lisa | Fail | Kirjeldus |
 |------|------|-----------|
@@ -42,6 +42,7 @@ See repositoorium sisaldab lõputöö lisade täisversioone. Lõputöö PDFs on 
 | 25 | `lisa25-exploit-tests.py` | Ekspluatatsioonitestid (40 testi) |
 | 26 | `lisa26-agent-start-prompt.md` | Claude Code agendi algprompt |
 | 27 | `lisa27-methodology.md` | Claude Code metoodikajuhis |
+| 28 | `lisa28-puksiir-cross-validation-prompt.md` | Ristvalideerimise prompt |
 
 ## Tööriistad
 
