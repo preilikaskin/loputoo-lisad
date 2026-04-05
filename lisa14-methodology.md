@@ -1,13 +1,10 @@
 # AI Security Analysis Methodology — Agent Instruction File
 
 ## Target Application
-- Puksiir Towing Company web application
-- Repo location: /Users/kaisaliiv/Projects/puksiir2026-security-tests
-- Language: C# / .NET 10 (ASP.NET backend) + TypeScript/Vue 3 (frontend)
-- ORM: Entity Framework Core + PostgreSQL 16
-- Auth: ASP.NET Identity + JWT (cookie-based) + role-based authorization
-- Primary backend code: WebApp/ (Program.cs, ApiControllers/, Areas/, Controllers/), App.BLL/, App.DAL.EF/, App.Domain/, App.API/, App.DTO/
-- Primary frontend code: frontend/src/ (views/, components/, service/, stores/, plugins/)
+- OWASP Juice Shop v19.1.1
+- Repo location: /Users/kaisaliiv/Desktop/juice-shop-test-2026
+- Language: TypeScript/JavaScript (Node.js backend + Angular frontend)
+- Primary code: routes/, lib/, models/, server.ts, config/, data/, frontend/src/
 
 ## Method (VULSOLVER-style)
 1. **Pattern detection**: grep searches for CWE-specific patterns
@@ -28,8 +25,9 @@
 
 ## Rules
 - Search ONLY for CWEs in your category
-- Do not read files where grep found no matches — **exception**: to detect missing controls (e.g., controllers without [Authorize], endpoints without logging), read the main WebApp/ApiControllers/, WebApp/Areas/, and WebApp/Controllers/ files even without grep matches
-- Do not read bin/, obj/, Migrations/, App.Tests/, TestResults/, Base.*, Helpers/, node_modules/, or dist/
-- Map application specifics (directory structure, middleware chain, DI setup) before starting grep searches — this helps exclude project-irrelevant patterns (e.g., Node.js CWEs in a .NET application)
+- Do not read files where grep found no matches — **exception**: to detect missing controls (e.g., routes without auth middleware, endpoints without logging), read the main routes/, lib/, and models/ files even without grep matches
+- Do not read tests (test/, spec/, e2e/) or node_modules/
+- Map application specifics (directory structure, middleware chain, etc.) before starting grep searches — this helps exclude project-irrelevant patterns (e.g., PHP CWEs in a Node.js application)
 - Describe each finding concretely (which line, which function, what problem)
+- If a vulnerability is intentional (e.g., CTF-style challenge), still mark it as TP
 - **CWE overlap between categories**: OWASP's official CWE mapping creates duplicates (e.g., CWE-209 appears under both A02 and A06). Record the same finding in detail only once; in other categories, reference the earlier finding (e.g., "see A02 finding #3")
